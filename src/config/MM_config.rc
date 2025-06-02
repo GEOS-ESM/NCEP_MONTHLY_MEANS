@@ -2,3 +2,4 @@
 
 export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
 export NCEP_BASENAME=gdas1.PGrbF00
+export BUILD_PATH=/home/dao_ops/GEOSadas-5_29_5_SLES15/GEOSadas/Linux/bin
