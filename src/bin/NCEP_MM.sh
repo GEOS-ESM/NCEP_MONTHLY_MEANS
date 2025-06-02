@@ -8,5 +8,5 @@ yy=$( echo $yyyymm | cut -c 3-4 )
 
 echo $yyyy $yy $mm
 #cd /archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana/Y2025/M05
-ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/gdas1.PGrbF00.${yy}${mm}* | wc
+ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc
 #ls gdas1.PGrbF00.2505* | wc
