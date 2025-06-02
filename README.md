@@ -1,4 +1,4 @@
-# NCEP_MONTHLY_MEANS
+# NCEP PULL AND PROCESS
 On the first day of the month:
 
 ls all the files and make sure there aren’t any missing/shortened files.
