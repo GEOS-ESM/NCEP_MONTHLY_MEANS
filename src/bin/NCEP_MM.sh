@@ -1,20 +1,29 @@
 #!/usr/bin/bash
 source ../config/MM_config.rc
+#yyyymm example: 202505 May 2025
 
 yyyymm=$1
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
-
-DAY_TABLE=( 31 28 31 30 31 30 31 31 30 31 30 31 )
-MONTHLY_TARGET=$( expr ${DAY_TABLE[$mm-1]} \* 4 )
-echo $MONTHLY_TARGET
-exit
 echo $yyyy $yy $mm
-#cd /archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana/Y2025/M05
+
+DAY_TABLE=(    31  28  31  30  31  30  31  31  30  31  30  31 )
+TARGET_TABLE=(124 112 124 120 124 120 124 124 120 124 120 124 )
+MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
+echo $MONTHLY_TOTAL
+
+if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
+	echo "all files present - move to filesize check"
+else
+	echo "not all files present"
+	# throw warning
+	exit
+fi
+source ${BUILD_PATH}/g5_modules.sh
+
+exit
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
-#ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
-#ls gdas1.PGrbF00.2505* | wc
 
 while IFS= read -r line  ; do
   # Process the line here
@@ -22,9 +31,23 @@ while IFS= read -r line  ; do
   if [ $file_size -gt 60000000 ]; then
 	  target_file=$( echo "$line" | awk ' { print $9 } '  )
 	  echo "$target_file"
-	  cp $target_file ../workdir1
-	  ls ../workdir1
+	  #cp $target_file ../workdir1
+	  #ls ../workdir1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
+	  # throw warning
+	  # exit
   fi
 done < ${yyyymm}_NCEP_files.list
+
+# after copying, convert from GRIB to flatfile
+#
+# move the flatfiles to workdir2
+#
+# using salloc, run the time_ave.x command to created the NC4 monthly mean file
+#
+# copy the files to the verification directory
+#
+# edit the xdf.tabl file to increment the TDEF value (from 234 to 235 etc..)
+#
+# Send notification to OPS & monitoring group that the files are ready
