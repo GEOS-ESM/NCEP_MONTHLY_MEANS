@@ -6,6 +6,10 @@ yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 
+DAY_TABLE=( 31 28 31 30 31 30 31 31 30 31 30 31 )
+MONTHLY_TARGET=$( expr ${DAY_TABLE[$mm-1]} \* 4 )
+echo $MONTHLY_TARGET
+exit
 echo $yyyy $yy $mm
 #cd /archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana/Y2025/M05
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
