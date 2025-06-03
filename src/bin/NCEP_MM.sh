@@ -22,7 +22,6 @@ else
 fi
 source ${BUILD_PATH}/g5_modules.sh
 
-exit
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
 
 while IFS= read -r line  ; do
@@ -31,7 +30,7 @@ while IFS= read -r line  ; do
   if [ $file_size -gt 60000000 ]; then
 	  target_file=$( echo "$line" | awk ' { print $9 } '  )
 	  echo "$target_file"
-	  #cp $target_file ../workdir1
+	  cp $target_file ../workdir1
 	  #ls ../workdir1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
@@ -40,13 +39,16 @@ while IFS= read -r line  ; do
   fi
 done < ${yyyymm}_NCEP_files.list
 
+ls ../workdir1
 # after copying, convert from GRIB to flatfile
 #
 # move the flatfiles to workdir2
 #
+# move flat binary files to workdir 2 where they are converted to nc4 by flat2hdf.x
+#
 # using salloc, run the time_ave.x command to created the NC4 monthly mean file
 #
-# copy the files to the verification directory
+# copy the files to the $SHARE/austin/verification/NCEP_GDAS-1.NC4 directory
 #
 # edit the xdf.tabl file to increment the TDEF value (from 234 to 235 etc..)
 #
