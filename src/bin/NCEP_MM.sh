@@ -55,6 +55,7 @@ for day in ${DAYS[@]}; do
 	# environment vars that should be set in ../config/MM_config.rc
 	# create data string 00z$DD$cmon$YYYY
 	/bin/cp ../config/1x125.TEMPLATE_ncep_gdas1.ctl $WORKING_DIR_1/1x125.ncep_gdas1.ctl
+	/bin/cp ../config/1x125.process_engine.gs $WORKING_DIR_1/1x125.process_engine.gs
 	gadatestring=00z${day}${MONTH_CURRENT}${yyyy}
 	sed -i "s/GRADSDATE/$gadatestring/g" $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	ls $WORKING_DIR_1/1x125.ncep_gdas1.ctl
