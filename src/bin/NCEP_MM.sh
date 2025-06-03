@@ -8,8 +8,9 @@ mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
 
-DAY_TABLE=(    31  28  31  30  31  30  31  31  30  31  30  31 )
-TARGET_TABLE=(124 112 124 120 124 120 124 124 120 124 120 124 )
+DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
+MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
+TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
 echo $MONTHLY_TOTAL
 
@@ -42,6 +43,14 @@ done < ${yyyymm}_NCEP_files.list
 DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
 for day in ${DAYS[@]}; do
 	echo $day
+	# copy process engine.gs to workdir1
+	# copy 1x125.TEMPLATE_ncep_gdas1.ctl to workdir1
+	# cd to workdir1
+	# environment vars that should be set in ../config/MM_config.rc
+	# create data string 00z$DD$cmon$YYYY
+	$rootdir/1x125.config/1x125.process_engine.csh ${yy}${mm} ${yy} ${mm} ${day} ${MONTH_TABLE[$mm-1]}
+	mv $rootdir/bin/scratch/i.1x125_ncep_26_levels.*${mm}${day} $rootdir/data
+
 done
 
 #MANUAL.daily_ncep.csh 25 2505 05 may $day
