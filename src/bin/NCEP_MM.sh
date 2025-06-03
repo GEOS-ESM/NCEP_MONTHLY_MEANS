@@ -30,7 +30,7 @@ while IFS= read -r line  ; do
   if [ $file_size -gt 60000000 ]; then
 	  target_file=$( echo "$line" | awk ' { print $9 } '  )
 	  echo "$target_file"
-	  cp $target_file ../workdir1
+	  #cp $target_file ../workdir1
 	  #ls ../workdir1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
@@ -39,7 +39,13 @@ while IFS= read -r line  ; do
   fi
 done < ${yyyymm}_NCEP_files.list
 
-ls ../workdir1
+DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
+for day in ${DAYS[@]}; do
+	echo $day
+done
+
+#MANUAL.daily_ncep.csh 25 2505 05 may $day
+
 # after copying, convert from GRIB to flatfile
 #
 # move the flatfiles to workdir2
