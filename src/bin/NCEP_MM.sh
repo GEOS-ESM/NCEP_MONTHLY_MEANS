@@ -12,6 +12,10 @@ DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30 
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
+WORKING_DIR_1=../${MONTH_TABLE[$mm-1]}${yyyy}work1
+DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
+mkdir -p $WORKING_DIR_1
+
 echo $MONTHLY_TOTAL
 
 if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
@@ -21,6 +25,7 @@ else
 	# throw warning
 	exit
 fi
+
 source ${BUILD_PATH}/g5_modules.sh
 
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
@@ -31,7 +36,9 @@ while IFS= read -r line  ; do
   if [ $file_size -gt 60000000 ]; then
 	  target_file=$( echo "$line" | awk ' { print $9 } '  )
 	  echo "$target_file"
-	  #cp $target_file ../workdir1
+	  #dmget -f $target_file
+	  #wait
+	  #cp $target_file $WORKING_DIR_1
 	  #ls ../workdir1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
@@ -40,16 +47,22 @@ while IFS= read -r line  ; do
   fi
 done < ${yyyymm}_NCEP_files.list
 
-DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
 for day in ${DAYS[@]}; do
-	echo $day
 	# copy process engine.gs to workdir1
 	# copy 1x125.TEMPLATE_ncep_gdas1.ctl to workdir1
 	# cd to workdir1
 	# environment vars that should be set in ../config/MM_config.rc
 	# create data string 00z$DD$cmon$YYYY
+	/bin/cp ../config/1x125.TEMPLATE_ncep_gdas1.ctl $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	gadatestring=00z${day}${MONTH_TABLE[$mm-1]}${yyyy}
+	sed -i "s/GRADSDATE/$gadatestring/g" $WORKING_DIR_1/1x125.ncep_gdas1.ctl
+	ls $WORKING_DIR_1/1x125.ncep_gdas1.ctl
+	grep $gadatestring $WORKING_DIR_1/1x125.ncep_gdas1.ctl
+#	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/gribmap -i 1x125.ncep_gdas1.ctl
+#	grads -blc "run 1x125.process_engine.gs $MM $DD $cmon"
+
 	echo $gadatestring
+	exit
 	#$rootdir/1x125.config/1x125.process_engine.csh ${yy}${mm} ${yy} ${mm} ${day} ${MONTH_TABLE[$mm-1]}
 	#mv $rootdir/bin/scratch/i.1x125_ncep_26_levels.*${mm}${day} $rootdir/data
 
