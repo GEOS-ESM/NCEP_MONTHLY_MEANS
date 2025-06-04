@@ -19,6 +19,7 @@ mkdir -p $WORKING_DIR_1
 
 echo $MONTHLY_TOTAL
 
+# check for correct number of files
 if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
 	echo "all files present - move to filesize check"
 else
@@ -29,8 +30,8 @@ fi
 
 source ${BUILD_PATH}/g5_modules.sh
 
+# check for incomplete files
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
-
 while IFS= read -r line  ; do
   # Process the line here
   file_size=$( echo "$line" | awk ' { print $5 } ' )
