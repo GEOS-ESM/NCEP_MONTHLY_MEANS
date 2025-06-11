@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+set -x
 source ../config/MM_config.rc
 #yyyymm example: 202505 May 2025
 
@@ -14,8 +15,11 @@ TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120 
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
 MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
 WORKING_DIR_1=../${MONTH_CURRENT}${yyyy}work1
+WORKING_DIR_2=../${MONTH_CURRENT}${yyyy}work2
+
 DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
 mkdir -p $WORKING_DIR_1
+mkdir -p $WORKING_DIR_2
 
 echo $MONTHLY_TOTAL
 
@@ -27,8 +31,6 @@ else
 	# throw warning
 	exit
 fi
-
-source ${BUILD_PATH}/g5_modules.sh
 
 # check for incomplete files
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
@@ -55,6 +57,7 @@ for day in ${DAYS[@]}; do
 	# cd to workdir1
 	# environment vars that should be set in ../config/MM_config.rc
 	# create data string 00z$DD$cmon$YYYY
+	
 	/bin/cp ../config/1x125.TEMPLATE_ncep_gdas1.ctl $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	/bin/cp ../config/1x125.process_engine.gs $WORKING_DIR_1/1x125.process_engine.gs
 	gadatestring=00z${day}${MONTH_CURRENT}${yyyy}
@@ -63,10 +66,12 @@ for day in ${DAYS[@]}; do
 	grep $gadatestring $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	cd $WORKING_DIR_1
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/gribmap -i 1x125.ncep_gdas1.ctl
-	grads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
+	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/opengrads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
+
 	cd -
 
 	echo $gadatestring
+	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
 	#$rootdir/1x125.config/1x125.process_engine.csh ${yy}${mm} ${yy} ${mm} ${day} ${MONTH_TABLE[$mm-1]}
 	#mv $rootdir/bin/scratch/i.1x125_ncep_26_levels.*${mm}${day} $rootdir/data
 
