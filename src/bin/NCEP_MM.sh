@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+set -x
 source ../config/MM_config.rc
 #yyyymm example: 202505 May 2025
 
@@ -18,6 +19,7 @@ WORKING_DIR_2=../${MONTH_CURRENT}${yyyy}work2
 
 DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
 mkdir -p $WORKING_DIR_1
+mkdir -p $WORKING_DIR_2
 
 echo $MONTHLY_TOTAL
 
@@ -29,8 +31,6 @@ else
 	# throw warning
 	exit
 fi
-
-source ${BUILD_PATH}/g5_modules.sh
 
 # check for incomplete files
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
@@ -66,7 +66,7 @@ for day in ${DAYS[@]}; do
 	grep $gadatestring $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	cd $WORKING_DIR_1
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/gribmap -i 1x125.ncep_gdas1.ctl
-	grads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
+	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/opengrads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
 
 	cd -
 

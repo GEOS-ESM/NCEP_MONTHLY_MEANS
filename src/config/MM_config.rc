@@ -8,3 +8,6 @@ export GASCRP=/home/aconaty/grads/lib
 export GAUDFT=/home/aconaty/GEOS_Util/plots/grads_util/udft_Linux.tools
 export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 #export GADDIR=/ford1/local/lib/grads
+
+source ${BUILD_PATH}/g5_modules.sh
+module load opengrads
