@@ -3,3 +3,8 @@
 export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
 export NCEP_BASENAME=gdas1.PGrbF00
 export BUILD_PATH=/home/dao_ops/GEOSadas-5_29_5_SLES15/GEOSadas/Linux/bin
+export GASCRP=/home/aconaty/grads/lib
+#export GAUDFT=/home/aconaty/grads/udf/UDFT
+export GAUDFT=/home/aconaty/GEOS_Util/plots/grads_util/udft_Linux.tools
+export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
+#export GADDIR=/ford1/local/lib/grads
