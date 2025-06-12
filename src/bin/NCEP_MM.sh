@@ -70,12 +70,13 @@ for day in ${DAYS[@]}; do
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/gribmap -i 1x125.ncep_gdas1.ctl
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/opengrads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
 	cd -
+	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
+
 
 	echo $gadatestring
 
 done
 
-mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
 cp sample_run_flat2hdf.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_flat2hdf.csh
 cp ../config/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
 
