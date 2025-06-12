@@ -79,15 +79,14 @@ done
 
 cp sample_run_flat2hdf.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_flat2hdf.csh
 cp ../config/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
-
+cp sample_run_time_ave.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_time_ave.csh
 cd $WORKING_DIR_2
 ./${MONTH_CURRENT}${yyyy}_flat2hdf.csh $yyyy $mm
+salloc --qos=debug --ntasks=28 --time=1:00:00 ./${MONTH_CURRENT}${yyyy}_time_ave.csh $yyyy $mm
 cd -
 
 echo "done"
 exit
-#
-# move flat binary files to workdir 2 where they are converted to nc4 by flat2hdf.x
 #
 # using salloc, run the time_ave.x command to created the NC4 monthly mean file
 #
