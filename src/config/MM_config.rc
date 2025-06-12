@@ -11,3 +11,5 @@ export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 
 source ${BUILD_PATH}/g5_modules.sh
 module load opengrads
+
+export MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
