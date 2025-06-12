@@ -73,16 +73,16 @@ for day in ${DAYS[@]}; do
 
 	echo $gadatestring
 
-	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
-	cp sample_run_flat2hdf.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_flat2hdf.csh
-	cp ../config/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
-	
-	cd $WORKING_DIR_2
-	./${MONTH_CURRENT}${yyyy}_flat2hdf.csh $yyyy $mm $day
-	exit
-	cd -
-
 done
+
+mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
+cp sample_run_flat2hdf.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_flat2hdf.csh
+cp ../config/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
+
+cd $WORKING_DIR_2
+./${MONTH_CURRENT}${yyyy}_flat2hdf.csh $yyyy $mm
+cd -
+
 echo "done"
 exit
 #
