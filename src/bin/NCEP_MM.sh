@@ -90,7 +90,7 @@ cat ../config/xdf.tabl | awk ' $0 ~ "TDEF" '
 
 prev_month_total=$( cat ../config/xdf.tabl | awk ' $0 ~ "TDEF"   { print $3 } ' )
 curr_month_total=$(($prev_month_total+1))
-sed -i 's/${prev_month_total}/${curr_month_total}/g' ../config/xdf.tabl 
+sed -i "s/${prev_month_total}/${curr_month_total}/g" ../config/xdf.tabl 
 
 cat ../config/xdf.tabl | awk ' $0 ~ "TDEF" '
 
