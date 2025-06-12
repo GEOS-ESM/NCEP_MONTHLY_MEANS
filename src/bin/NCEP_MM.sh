@@ -64,25 +64,28 @@ for day in ${DAYS[@]}; do
 	sed -i "s/GRADSDATE/$gadatestring/g" $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	ls $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	grep $gadatestring $WORKING_DIR_1/1x125.ncep_gdas1.ctl
+	
+	
 	cd $WORKING_DIR_1
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/gribmap -i 1x125.ncep_gdas1.ctl
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/opengrads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
-
 	cd -
+	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
+
 
 	echo $gadatestring
-	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
-	#$rootdir/1x125.config/1x125.process_engine.csh ${yy}${mm} ${yy} ${mm} ${day} ${MONTH_TABLE[$mm-1]}
-	#mv $rootdir/bin/scratch/i.1x125_ncep_26_levels.*${mm}${day} $rootdir/data
 
 done
+
+cp sample_run_flat2hdf.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_flat2hdf.csh
+cp ../config/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
+
+cd $WORKING_DIR_2
+./${MONTH_CURRENT}${yyyy}_flat2hdf.csh $yyyy $mm
+cd -
+
 echo "done"
 exit
-#MANUAL.daily_ncep.csh 25 2505 05 may $day
-
-# after copying, convert from GRIB to flatfile
-#
-# move the flatfiles to workdir2
 #
 # move flat binary files to workdir 2 where they are converted to nc4 by flat2hdf.x
 #
