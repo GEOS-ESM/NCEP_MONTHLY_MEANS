@@ -2,7 +2,7 @@
 
 set YYYY = $1
 set MM = $2
-set DAY = $3
+set DAY = "01"
 #source ops modules
 #source /home/dao_ops/GEOSadas-5_27_1/GEOSadas/Linux/bin/g5_modules
 source /home/dao_ops/GEOSadas-5_29_5_SLES15/GEOSadas/Linux/bin/g5_modules
