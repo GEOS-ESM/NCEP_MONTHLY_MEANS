@@ -83,6 +83,7 @@ cp sample_run_time_ave.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_time_ave.csh
 cd $WORKING_DIR_2
 ./${MONTH_CURRENT}${yyyy}_flat2hdf.csh $yyyy $mm
 salloc --qos=debug --ntasks=28 --time=1:00:00 ./${MONTH_CURRENT}${yyyy}_time_ave.csh $yyyy $mm
+mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 ncep_gdas.${yyyy}${mm}mm.nc4
 cd -
 
 cat ../config/xdf.tabl | awk ' $0 ~ "TDEF" '
