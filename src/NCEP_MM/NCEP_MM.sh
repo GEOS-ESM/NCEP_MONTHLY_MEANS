@@ -20,10 +20,20 @@ yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
-
 DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
-MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
+
+if [ $mm -eq "02" ]; then
+	num_check=$( /usr/bin/perl /home/dao_ops/bin/tick ${yyyy}${mm}${DAY_TABLE[$mm-1]} )
+	check_num=$(echo $num_check | cut -c 7-8 )
+	echo $check_num
+	if [ $check_num -eq "29" ]; then
+		DAY_TABLE=(      31    29    31    30    31    30    31    31    30    31    30    31 )
+		TARGET_TABLE=(  124   116   124   120   124   120   124   124   120   124   120   124 )
+	fi
+fi
+
+MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
 MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
 WORKING_DIR_1=../${MONTH_CURRENT}${yyyy}work1
