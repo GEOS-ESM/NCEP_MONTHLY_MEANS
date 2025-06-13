@@ -20,7 +20,6 @@ yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
-wait 15
 DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
 TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
 
