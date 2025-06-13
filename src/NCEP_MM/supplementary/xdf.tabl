@@ -1,0 +1,4 @@
+DSET ^ncep_gdas.%y4%m2mm.nc4
+TITLE ncep gdas1 analysis
+OPTIONS template
+TDEF time 295 LINEAR 00:00Z01jan2001 1mo

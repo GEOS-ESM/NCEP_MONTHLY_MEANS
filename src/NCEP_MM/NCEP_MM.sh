@@ -1,7 +1,19 @@
 #!/usr/bin/bash
+# example: /usr/bin/bash NCEP_MM.sh 202505
 set -x
-source ../config/MM_config.rc
-#yyyymm example: 202505 May 2025
+export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
+export NCEP_BASENAME=gdas1.PGrbF00
+export BUILD_PATH=/home/dao_ops/GEOSadas-5_29_5_SLES15/GEOSadas/Linux/bin
+export GASCRP=/home/aconaty/grads/lib
+#export GAUDFT=/home/aconaty/grads/udf/UDFT
+export GAUDFT=/home/aconaty/GEOS_Util/plots/grads_util/udft_Linux.tools
+export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
+#export GADDIR=/ford1/local/lib/grads
+
+source ${BUILD_PATH}/g5_modules.sh
+module load opengrads
+
+export MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 
 yyyymm=$1
 yyyy=$(echo $yyyymm | cut -c 1-4 )
@@ -58,8 +70,8 @@ for day in ${DAYS[@]}; do
 	# environment vars that should be set in ../config/MM_config.rc
 	# create data string 00z$DD$cmon$YYYY
 	
-	/bin/cp ../config/1x125.TEMPLATE_ncep_gdas1.ctl $WORKING_DIR_1/1x125.ncep_gdas1.ctl
-	/bin/cp ../config/1x125.process_engine.gs $WORKING_DIR_1/1x125.process_engine.gs
+	/bin/cp ./supplementary/1x125.TEMPLATE_ncep_gdas1.ctl $WORKING_DIR_1/1x125.ncep_gdas1.ctl
+	/bin/cp ./supplementary/1x125.process_engine.gs $WORKING_DIR_1/1x125.process_engine.gs
 	gadatestring=00z${day}${MONTH_CURRENT}${yyyy}
 	sed -i "s/GRADSDATE/$gadatestring/g" $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	ls $WORKING_DIR_1/1x125.ncep_gdas1.ctl
@@ -77,27 +89,27 @@ for day in ${DAYS[@]}; do
 
 done
 
-cp sample_run_flat2hdf.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_flat2hdf.csh
-cp ../config/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
-cp sample_run_time_ave.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_time_ave.csh
+cp supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
+#cp sample_run_time_ave.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_time_ave.csh
 cd $WORKING_DIR_2
-./${MONTH_CURRENT}${yyyy}_flat2hdf.csh $yyyy $mm
-salloc --qos=debug --ntasks=28 --time=1:00:00 ./${MONTH_CURRENT}${yyyy}_time_ave.csh $yyyy $mm
+${BUILD_PATH}/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600
+salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4
+
+#./${MONTH_CURRENT}${yyyy}_flat2hdf.csh $yyyy $mm
+#salloc --qos=debug --ntasks=28 --time=1:00:00 ./${MONTH_CURRENT}${yyyy}_time_ave.csh $yyyy $mm
 mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 ncep_gdas.${yyyy}${mm}mm.nc4
 cd -
 
-cat ../config/xdf.tabl | awk ' $0 ~ "TDEF" '
+cat supplementary/xdf.tabl | awk ' $0 ~ "TDEF" '
 
 prev_month_total=$( cat ../config/xdf.tabl | awk ' $0 ~ "TDEF"   { print $3 } ' )
 curr_month_total=$(($prev_month_total+1))
-sed -i "s/${prev_month_total}/${curr_month_total}/g" ../config/xdf.tabl 
+sed -i "s/${prev_month_total}/${curr_month_total}/g" ./supplementary/xdf.tabl 
 
-cat ../config/xdf.tabl | awk ' $0 ~ "TDEF" '
+cat supplementary/xdf.tabl | awk ' $0 ~ "TDEF" '
 
 echo "done"
 exit
-#
-# using salloc, run the time_ave.x command to created the NC4 monthly mean file
 #
 # copy the files to the $SHARE/austin/verification/NCEP_GDAS-1.NC4 directory
 #
