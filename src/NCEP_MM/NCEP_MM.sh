@@ -93,7 +93,7 @@ cp supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
 #cp sample_run_time_ave.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_time_ave.csh
 cd $WORKING_DIR_2
 ${BUILD_PATH}/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600
-salloc --qos=debug --ntasks=28 --time=1:00:00 $bindir/esma_mpirun  -np 28 $bindir/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4
+salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4
 
 #./${MONTH_CURRENT}${yyyy}_flat2hdf.csh $yyyy $mm
 #salloc --qos=debug --ntasks=28 --time=1:00:00 ./${MONTH_CURRENT}${yyyy}_time_ave.csh $yyyy $mm
