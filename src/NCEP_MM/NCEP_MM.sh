@@ -28,6 +28,7 @@ MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}
 MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
 WORKING_DIR_1=../${MONTH_CURRENT}${yyyy}work1
 WORKING_DIR_2=../${MONTH_CURRENT}${yyyy}work2
+STORAGE_DIR=../storage_dir
 
 DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
 mkdir -p $WORKING_DIR_1
@@ -83,30 +84,33 @@ for day in ${DAYS[@]}; do
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/opengrads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
 	cd -
 	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
+	rm -f $WORKING_DIR_1/${NCEP_BASENAME}.${yy}${mm}${day}.*z
 
 
 	echo $gadatestring
 
 done
 
+rm -rf $WORKING_DIR_1
+
 cp supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
-#cp sample_run_time_ave.csh $WORKING_DIR_2/${MONTH_CURRENT}${yyyy}_time_ave.csh
+
 cd $WORKING_DIR_2
+
 ${BUILD_PATH}/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600
 salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4
 
-#./${MONTH_CURRENT}${yyyy}_flat2hdf.csh $yyyy $mm
-#salloc --qos=debug --ntasks=28 --time=1:00:00 ./${MONTH_CURRENT}${yyyy}_time_ave.csh $yyyy $mm
-mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 ncep_gdas.${yyyy}${mm}mm.nc4
+mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
+
 cd -
 
-cat supplementary/xdf.tabl | awk ' $0 ~ "TDEF" '
+cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
 prev_month_total=$( cat ../config/xdf.tabl | awk ' $0 ~ "TDEF"   { print $3 } ' )
 curr_month_total=$(($prev_month_total+1))
-sed -i "s/${prev_month_total}/${curr_month_total}/g" ./supplementary/xdf.tabl 
+sed -i "s/${prev_month_total}/${curr_month_total}/g" $STORAGE_DIR/xdf.tabl 
 
-cat supplementary/xdf.tabl | awk ' $0 ~ "TDEF" '
+cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
 echo "done"
 exit
