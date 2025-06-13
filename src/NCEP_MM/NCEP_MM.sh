@@ -20,17 +20,17 @@ yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
+wait 15
+DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
+TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
 
 if [ $mm -eq "02" ]; then
 	num_check=$( /usr/bin/perl /home/dao_ops/bin/tick ${yyyy}${mm}${DAY_TABLE[$mm-1]} )
 	check_num=$(echo $num_check | cut -c 7-8 )
+	echo $check_num
 	if [ $check_num -eq "29" ]; then
 		DAY_TABLE=(      31    29    31    30    31    30    31    31    30    31    30    31 )
 		TARGET_TABLE=(  124   116   124   120   124   120   124   124   120   124   120   124 )
-	else
-		DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
-		TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
-
 	fi
 fi
 
