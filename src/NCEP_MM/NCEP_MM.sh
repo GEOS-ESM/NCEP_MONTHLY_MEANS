@@ -112,6 +112,7 @@ sed -i "s/${prev_month_total}/${curr_month_total}/g" $STORAGE_DIR/xdf.tabl
 
 cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
+rm -rf $WORKING_DIR_2
 echo "done"
 exit
 #
