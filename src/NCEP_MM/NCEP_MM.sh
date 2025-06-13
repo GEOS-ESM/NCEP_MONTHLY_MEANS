@@ -53,7 +53,7 @@ while IFS= read -r line  ; do
   if [ $file_size -gt 60000000 ]; then
 	  target_file=$( echo "$line" | awk ' { print $9 } '  )
 	  echo "$target_file"
-	  #dmget -f $target_file
+	  #dmget $target_file
 	  #wait
 	  cp $target_file $WORKING_DIR_1
 	  #ls ../workdir1
@@ -63,6 +63,8 @@ while IFS= read -r line  ; do
 	  # exit
   fi
 done < ${yyyymm}_NCEP_files.list
+
+rm -f ${yyyymm}_NCEP_files.list
 
 for day in ${DAYS[@]}; do
 	# copy process engine.gs to workdir1
@@ -76,8 +78,7 @@ for day in ${DAYS[@]}; do
 	gadatestring=00z${day}${MONTH_CURRENT}${yyyy}
 	sed -i "s/GRADSDATE/$gadatestring/g" $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	ls $WORKING_DIR_1/1x125.ncep_gdas1.ctl
-	grep $gadatestring $WORKING_DIR_1/1x125.ncep_gdas1.ctl
-	
+	grep $gadatestring $WORKING_DIR_1/1x125.ncep_gdas1.ctl	
 	
 	cd $WORKING_DIR_1
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/gribmap -i 1x125.ncep_gdas1.ctl
@@ -106,7 +107,7 @@ cd -
 
 cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
-prev_month_total=$( cat ../config/xdf.tabl | awk ' $0 ~ "TDEF"   { print $3 } ' )
+prev_month_total=$( cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF"   { print $3 } ' )
 curr_month_total=$(($prev_month_total+1))
 sed -i "s/${prev_month_total}/${curr_month_total}/g" $STORAGE_DIR/xdf.tabl 
 
@@ -115,9 +116,3 @@ cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 rm -rf $WORKING_DIR_2
 echo "done"
 exit
-#
-# copy the files to the $SHARE/austin/verification/NCEP_GDAS-1.NC4 directory
-#
-# edit the xdf.tabl file to increment the TDEF value (from 234 to 235 etc..)
-#
-# Send notification to OPS & monitoring group that the files are ready
