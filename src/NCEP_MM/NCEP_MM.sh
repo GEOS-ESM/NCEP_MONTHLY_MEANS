@@ -1,6 +1,5 @@
 #!/usr/bin/bash
 # example: /usr/bin/bash NCEP_MM.sh 202505
-set -x
 export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
 export NCEP_BASENAME=gdas1.PGrbF00
 export BUILD_PATH=/home/dao_ops/GEOSadas-5_29_5_SLES15/GEOSadas/Linux/bin
@@ -12,7 +11,7 @@ export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 
 source ${BUILD_PATH}/g5_modules.sh
 module load opengrads
-
+set -x
 export MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 
 yyyymm=$1
@@ -25,7 +24,7 @@ mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
 DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
-TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
+TARGET_TABLE=(  124   112   120   120   124   120   124   124   120   124   120   124 )
 
 if [ $mm -eq "02" ]; then
 	num_check=$( /usr/bin/perl /home/dao_ops/bin/tick ${yyyy}${mm}${DAY_TABLE[$mm-1]} )
@@ -36,7 +35,7 @@ if [ $mm -eq "02" ]; then
 		TARGET_TABLE=(  124   116   124   120   124   120   124   124   120   124   120   124 )
 	fi
 fi
-
+/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Initiating MM process" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
 MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
@@ -49,13 +48,12 @@ mkdir -p $WORKING_DIR_1
 mkdir -p $WORKING_DIR_2
 
 echo $MONTHLY_TOTAL
-
 # check for correct number of files
 if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
 	echo "all files present - move to filesize check"
 else
 	echo "not all files present"
-	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 1 -D "Not all files present for the month" -X ${NCEP_BASENAME} -C 4 -L ../logs
+	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Not all files present for the month" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
 	# throw warning
 	exit
 fi
@@ -74,9 +72,8 @@ while IFS= read -r line  ; do
 	  #ls ../workdir1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
-	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 1 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ../logs
-	  # throw warning
-	  # exit
+	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
+	  exit
   fi
 done < ${yyyymm}_NCEP_files.list
 
