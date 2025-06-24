@@ -16,6 +16,10 @@ module load opengrads
 export MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 
 yyyymm=$1
+
+# insert error for incorrect argument
+# check arg for being anything other than 6 integers
+
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
@@ -51,6 +55,7 @@ if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
 	echo "all files present - move to filesize check"
 else
 	echo "not all files present"
+	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 1 -D "Not all files present for the month" -X ${NCEP_BASENAME} -C 4 -L ../logs
 	# throw warning
 	exit
 fi
@@ -69,6 +74,7 @@ while IFS= read -r line  ; do
 	  #ls ../workdir1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
+	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 1 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ../logs
 	  # throw warning
 	  # exit
   fi
@@ -109,6 +115,7 @@ cp supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
 cd $WORKING_DIR_2
 
 ${BUILD_PATH}/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600
+
 salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4
 
 mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
