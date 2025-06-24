@@ -24,7 +24,7 @@ mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
 DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
-TARGET_TABLE=(  124   112   120   120   124   120   124   124   120   124   120   124 )
+TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
 
 if [ $mm -eq "02" ]; then
 	num_check=$( /usr/bin/perl /home/dao_ops/bin/tick ${yyyy}${mm}${DAY_TABLE[$mm-1]} )
@@ -63,7 +63,7 @@ ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyym
 while IFS= read -r line  ; do
   # Process the line here
   file_size=$( echo "$line" | awk ' { print $5 } ' )
-  if [ $file_size -gt 60000000 ]; then
+  if [ $file_size -gt 160000000 ]; then
 	  target_file=$( echo "$line" | awk ' { print $9 } '  )
 	  echo "$target_file"
 	  #dmget $target_file
