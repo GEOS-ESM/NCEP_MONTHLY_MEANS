@@ -70,7 +70,7 @@ while IFS= read -r line  ; do
 	  #wait
 	  cp $target_file $WORKING_DIR_1
 	  #ls ../workdir1
-  elif [ $file_size -lt 60000000 ]; then
+  elif [ $file_size -lt 160000000 ]; then
 	  echo "$line is a bad file."
 	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
 	  exit
