@@ -15,19 +15,21 @@ set -x
 
 yyyymm=$1
 
-if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
-	echo "$yyyymm processing"
-else
-	echo "$yyyymm is either too long or not all integers, pass a date in yyyymm format"
-	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
-fi
-
-exit
 
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
+
+if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
+        echo "$yyyymm processing"
+else
+        echo "$yyyymm is either too long or not all integers, pass a date in yyyymm format"
+        /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
+fi
+
+exit
+
 DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
 TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
 
