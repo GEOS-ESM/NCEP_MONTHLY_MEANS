@@ -14,8 +14,8 @@ module load opengrads
 set -x
 
 yyyymm=$1
-
-logfile=${NCEP_BASENAME}_${yyyymm}_MonMeans.log
+logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/
+logfile=NCEP_MonMeans.log
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
@@ -72,14 +72,14 @@ ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyym
 while IFS= read -r line  ; do
   # Process the line here
   file_size=$( echo "$line" | awk ' { print $5 } ' )
-  if [ $file_size -gt 160000000 ]; then
+  if [ $file_size -gt 60000000 ]; then
 	  target_file=$( echo "$line" | awk ' { print $9 } '  )
 	  echo "$target_file"
 	  #dmget $target_file
 	  #wait
 	  cp $target_file $WORKING_DIR_1
 	  #ls ../workdir1
-  elif [ $file_size -lt 160000000 ]; then
+  elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
 	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ../logs/${logfile}
 	  exit
