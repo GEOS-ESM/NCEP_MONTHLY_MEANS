@@ -48,10 +48,11 @@ fi
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
 MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
-WORKING_DIR_1=../${MONTH_CURRENT}${yyyy}work1
-WORKING_DIR_2=../${MONTH_CURRENT}${yyyy}work2
+WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyymm}work1
+WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyymm}work2
 STORAGE_DIR=../storage_dir
-MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
+#MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
+#STORAGE_DIR=$MM_OUTPUT_DIR
 
 
 DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
