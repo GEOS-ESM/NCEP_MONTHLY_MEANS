@@ -12,12 +12,17 @@ export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 source ${BUILD_PATH}/g5_modules.sh
 module load opengrads
 set -x
-export MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 
 yyyymm=$1
 
-# insert error for incorrect argument
-# check arg for being anything other than 6 integers
+if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
+	echo "$yyyymm processing"
+else
+	echo "$yyyymm is either too long or not all integers, pass a date in yyyymm format"
+	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
+fi
+
+exit
 
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
@@ -42,6 +47,8 @@ MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
 WORKING_DIR_1=../${MONTH_CURRENT}${yyyy}work1
 WORKING_DIR_2=../${MONTH_CURRENT}${yyyy}work2
 STORAGE_DIR=../storage_dir
+MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
+
 
 DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
 mkdir -p $WORKING_DIR_1
@@ -100,7 +107,6 @@ for day in ${DAYS[@]}; do
 	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
 	rm -f $WORKING_DIR_1/${NCEP_BASENAME}.${yy}${mm}${day}.*z
 
-
 	echo $gadatestring
 
 done
@@ -123,6 +129,8 @@ cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
 prev_month_total=$( cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF"   { print $3 } ' )
 curr_month_total=$(($prev_month_total+1))
+# curr_month_total=$(ls /discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4/ | grep nc4$ | wc -l)
+
 sed -i "s/${prev_month_total}/${curr_month_total}/g" $STORAGE_DIR/xdf.tabl 
 
 cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
