@@ -15,7 +15,7 @@ set -x
 
 yyyymm=$1
 
-
+logfile=${NCEP_BASENAME}_${yyyymm}_MonMeans.log
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
@@ -25,7 +25,7 @@ if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
         echo "$yyyymm processing"
 else
         echo "$yyyymm is either too long or not all integers, pass a date in yyyymm format"
-        /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
+	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X ${NCEP_BASENAME} -C 4 -L ../logs/${logfile}
 fi
 
 exit
@@ -62,7 +62,7 @@ if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
 	echo "all files present - move to filesize check"
 else
 	echo "not all files present"
-	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Not all files present for the month" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
+	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Not all files present for the month" -X ${NCEP_BASENAME} -C 4 -L ../logs/${logfile}
 	# throw warning
 	exit
 fi
@@ -81,7 +81,7 @@ while IFS= read -r line  ; do
 	  #ls ../workdir1
   elif [ $file_size -lt 160000000 ]; then
 	  echo "$line is a bad file."
-	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
+	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ../logs/${logfile}
 	  exit
   fi
 done < ${yyyymm}_NCEP_files.list
