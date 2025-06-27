@@ -13,13 +13,15 @@ source ${BUILD_PATH}/g5_modules.sh
 module load opengrads
 set -x
 
-yyyymm=$1
-logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/
-logfile=NCEP_MonMeans.log
+yyyymm=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
+
+logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/
+logfile=NCEP_${yyyymm}_MonMeans.log
+
 
 if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
         echo "$yyyymm processing"
