@@ -19,18 +19,16 @@ mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
 
-logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/
+logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings
 logfile=NCEP_${yyyymm}_MonMeans.log
-
 
 if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
         echo "$yyyymm processing"
 else
         echo "$yyyymm is either too long or not all integers, pass a date in yyyymm format"
-	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X ${NCEP_BASENAME} -C 4 -L ../logs/${logfile}
+	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 fi
 
-exit
 
 DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
 TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
@@ -44,19 +42,23 @@ if [ $mm -eq "02" ]; then
 		TARGET_TABLE=(  124   116   124   120   124   120   124   124   120   124   120   124 )
 	fi
 fi
-/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Initiating MM process" -X ${NCEP_BASENAME} -C 4 -L ../logs/${NCEP_BASENAME}.${yy}${mm}.MM.log
+
+/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Initiating MM process" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
+
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
 MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
-WORKING_DIR_1=../${MONTH_CURRENT}${yyyy}work1
-WORKING_DIR_2=../${MONTH_CURRENT}${yyyy}work2
-STORAGE_DIR=../storage_dir
+WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyymm}work1
+WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyymm}work2
+STORAGE_DIR=./supplementary
 MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
+STORAGE_DIR=$MM_OUTPUT_DIR
 
 
 DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
 mkdir -p $WORKING_DIR_1
 mkdir -p $WORKING_DIR_2
+mkdir -p $STORAGE_DIR
 
 echo $MONTHLY_TOTAL
 # check for correct number of files
@@ -64,10 +66,11 @@ if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
 	echo "all files present - move to filesize check"
 else
 	echo "not all files present"
-	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Not all files present for the month" -X ${NCEP_BASENAME} -C 4 -L ../logs/${logfile}
+	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Not all files present for the month" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 	# throw warning
 	exit
 fi
+/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 # check for incomplete files
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
@@ -83,12 +86,13 @@ while IFS= read -r line  ; do
 	  #ls ../workdir1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
-	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ../logs/${logfile}
+	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 	  exit
   fi
 done < ${yyyymm}_NCEP_files.list
 
 rm -f ${yyyymm}_NCEP_files.list
+/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "MONTHLY filesize check complete and good" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 for day in ${DAYS[@]}; do
 	# copy process engine.gs to workdir1
@@ -110,6 +114,7 @@ for day in ${DAYS[@]}; do
 	cd -
 	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
 	rm -f $WORKING_DIR_1/${NCEP_BASENAME}.${yy}${mm}${day}.*z
+	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "successful gribmap and opengrads run for: $mm $day $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 	echo $gadatestring
 
@@ -121,9 +126,11 @@ cp supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
 
 cd $WORKING_DIR_2
 
-${BUILD_PATH}/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600
+${BUILD_PATH}/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600 > ${logdir}/${logfile} 2>&1
+/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "successful flat2hdf.x run for: $mm $day $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile} 
 
-salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4
+salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4 > ${logdir}/${logfile} 2>&1
+/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "successful time_ave.x submission for: $mm $day $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
 
@@ -132,13 +139,17 @@ cd -
 cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
 prev_month_total=$( cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF"   { print $3 } ' )
-curr_month_total=$(($prev_month_total+1))
-# curr_month_total=$(ls /discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4/ | grep nc4$ | wc -l)
+#curr_month_total=$(($prev_month_total+1))
+curr_month_total=$(ls /discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4/ | grep nc4$ | wc -l)
+curr_month_total=$(ls $STORAGE_DIR | grep nc4$ | wc -l)
 
 sed -i "s/${prev_month_total}/${curr_month_total}/g" $STORAGE_DIR/xdf.tabl 
+
+/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "xdf.table entry is now: $( cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" ' ) " -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
 rm -rf $WORKING_DIR_2
+
 echo "done"
 exit
