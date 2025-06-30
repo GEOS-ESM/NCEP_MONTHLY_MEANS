@@ -19,7 +19,7 @@ mm=$(echo  $yyyymm | cut -c 5-6 )
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
 
-logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings
+logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
 logfile=NCEP_${yyyymm}_MonMeans.log
 
 if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
