@@ -1,5 +1,5 @@
 MAILTO='oa@gmao.gsfc.nasa.gov'
-5 9 1 * * /path/to/NCEP_PULL_AND_PROCESS/NCEP_MM.sh >> /dev/null 2>&1
+5 9 1 * * /gpfsm/dnb34/dao_ops/GEOSadas-5_41_3/GEOSadas/install-SLES15/bin_ops/NCEP_MONTHLY_MEANS/NCEP_MM.sh >> /dev/null 2>&1
 MAILTO=''
 # this job will fire off at 10:05 am UTC on the 1st of the month
 # this job will fire off at 06:05 am EDT on the 1st of the month (05:05 am EST)
