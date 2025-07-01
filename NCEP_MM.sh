@@ -16,12 +16,14 @@ set -x
 yyyymm=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
+let mm-=1
+mm=$(printf "%02d" $mm)
+echo $mm
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
-
 logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
 mkdir -p ${logdir}
-logfile=NCEP_${yyyymm}_MonMeans.log
+logfile=NCEP_${yyyy}${mm}_MonMeans.log
 
 if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
         echo "$yyyymm processing"
@@ -49,8 +51,8 @@ fi
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
 MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
-WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyymm}work1
-WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyymm}work2
+WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work1
+WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work2
 MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 STORAGE_DIR=$MM_OUTPUT_DIR
 
@@ -72,7 +74,7 @@ else
 fi
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 # check for incomplete files
-ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
+ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyy}${mm}_NCEP_files.list
 while IFS= read -r line  ; do
   # Process the line here
   file_size=$( echo "$line" | awk ' { print $5 } ' )
