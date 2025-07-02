@@ -1,8 +1,8 @@
 #!/usr/bin/bash
-# example: /usr/bin/bash NCEP_MM.sh 202505
+# example: /usr/bin/bash NCEP_MM.sh
 export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
 export NCEP_BASENAME=gdas1.PGrbF00
-export BUILD_PATH=/home/dao_ops/GEOSadas-5_29_5_SLES15/GEOSadas/Linux/bin
+export BUILD_PATH=/home/dao_ops/GEOSadas-5_41_3/GEOSadas/Linux/bin
 export GASCRP=/home/aconaty/grads/lib
 #export GAUDFT=/home/aconaty/grads/udf/UDFT
 export GAUDFT=/home/aconaty/GEOS_Util/plots/grads_util/udft_Linux.tools
@@ -12,15 +12,18 @@ export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 source ${BUILD_PATH}/g5_modules.sh
 module load opengrads
 set -x
-
+#yyyymm=202505
 yyyymm=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
+let mm-=1
+mm=$(printf "%02d" $mm)
+echo $mm
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
-
 logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
-logfile=NCEP_${yyyymm}_MonMeans.log
+mkdir -p ${logdir}
+logfile=NCEP_${yyyy}${mm}_MonMeans.log
 
 if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
         echo "$yyyymm processing"
@@ -48,9 +51,8 @@ fi
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
 MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
-WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyymm}work1
-WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyymm}work2
-STORAGE_DIR=./supplementary
+WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work1
+WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work2
 MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 STORAGE_DIR=$MM_OUTPUT_DIR
 
@@ -71,9 +73,8 @@ else
 	exit
 fi
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
-
 # check for incomplete files
-ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyymm}_NCEP_files.list
+ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyy}${mm}_NCEP_files.list
 while IFS= read -r line  ; do
   # Process the line here
   file_size=$( echo "$line" | awk ' { print $5 } ' )
@@ -129,18 +130,17 @@ cd $WORKING_DIR_2
 ${BUILD_PATH}/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600 > ${logdir}/${logfile} 2>&1
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "successful flat2hdf.x run for: $mm $day $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile} 
 
-salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4 > ${logdir}/${logfile} 2>&1
+salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4 >> ${logdir}/${logfile} 2>&1
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "successful time_ave.x submission for: $mm $day $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
-
 mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
 
 cd -
-
+ls $STORAGE_DIR
 cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
 prev_month_total=$( cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF"   { print $3 } ' )
 #curr_month_total=$(($prev_month_total+1))
-curr_month_total=$(ls /discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4/ | grep nc4$ | wc -l)
+#curr_month_total=$(ls /discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4/ | grep nc4$ | wc -l)
 curr_month_total=$(ls $STORAGE_DIR | grep nc4$ | wc -l)
 
 sed -i "s/${prev_month_total}/${curr_month_total}/g" $STORAGE_DIR/xdf.tabl 
