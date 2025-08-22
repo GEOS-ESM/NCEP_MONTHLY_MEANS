@@ -73,26 +73,27 @@ else
 	exit
 fi
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
+
 # check for incomplete files
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyy}${mm}_NCEP_files.list
+cat ${yyyy}${mm}_NCEP_files.list
 while IFS= read -r line  ; do
   # Process the line here
   file_size=$( echo "$line" | awk ' { print $5 } ' )
   if [ $file_size -gt 60000000 ]; then
 	  target_file=$( echo "$line" | awk ' { print $9 } '  )
-	  echo "$target_file"
-	  #dmget $target_file
-	  #wait
+	  echo "$target_file is $file_size"
+	  dmget $target_file
+	  wait
 	  cp $target_file $WORKING_DIR_1
-	  #ls ../workdir1
+	  ls ../workdir1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
 	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 	  exit
   fi
-done < ${yyyymm}_NCEP_files.list
-
-rm -f ${yyyymm}_NCEP_files.list
+done < ${yyyy}${mm}_NCEP_files.list
+#rm -f ${yyyy}${mm}_NCEP_files.list
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "MONTHLY filesize check complete and good" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 for day in ${DAYS[@]}; do
@@ -114,14 +115,14 @@ for day in ${DAYS[@]}; do
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/opengrads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
 	cd -
 	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
-	rm -f $WORKING_DIR_1/${NCEP_BASENAME}.${yy}${mm}${day}.*z
+	#rm -f $WORKING_DIR_1/${NCEP_BASENAME}.${yy}${mm}${day}.*z
 	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "successful gribmap and opengrads run for: $mm $day $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 	echo $gadatestring
 
 done
 
-rm -rf $WORKING_DIR_1
+#rm -rf $WORKING_DIR_1
 
 cp supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
 
@@ -149,7 +150,18 @@ sed -i "s/${prev_month_total}/${curr_month_total}/g" $STORAGE_DIR/xdf.tabl
 
 cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
-rm -rf $WORKING_DIR_2
+#rm -rf $WORKING_DIR_2
 
 echo "done"
-exit
+echo $WORKING_DIR_1
+echo $WORKING_DIR_2
+# Send completion email
+if [ $? -eq 0 ]; then
+    echo "Job completed successfully at $(date)" | mail -s "Cron Job Success" oa@gmao.gsfc.nasa.gov
+    rm -rf $WORKING_DIR_1
+    rm -rf $WORKING_DIR_2
+    exit 0
+else
+    echo "Job failed at $(date)" | mail -s "Cron Job Failed" your-email@nasa.gov
+    exit 1
+fi
