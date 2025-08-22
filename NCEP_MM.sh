@@ -157,11 +157,11 @@ echo $WORKING_DIR_1
 echo $WORKING_DIR_2
 # Send completion email
 if [ $? -eq 0 ]; then
-    echo "Job completed successfully at $(date)" | mail -s "Cron Job Success" oa@gmao.gsfc.nasa.gov
+    echo "Job completed successfully at $(date)" | mail -s "NCEP Monthly Means Success" oa@gmao.gsfc.nasa.gov
     rm -rf $WORKING_DIR_1
     rm -rf $WORKING_DIR_2
     exit 0
 else
-    echo "Job failed at $(date)" | mail -s "Cron Job Failed" oa@gmao.gsfc.nasa.gov
+    echo "Job failed at $(date)" | mail -s "NCEP Monthly Means Failure" oa@gmao.gsfc.nasa.gov
     exit 1
 fi
