@@ -10,8 +10,6 @@ export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 #export GADDIR=/ford1/local/lib/grads
 source ${BUILD_PATH}/g5_modules.sh
 module load opengrads
-count_mail=$(cat ~/bin/.check_dmf_mail |tail -1)
-count_mail_o=$(cat ~/bin/.check_dmf_outmail |tail -1 )
 set -x
 #yyyymm=202505
 yyyymm=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
