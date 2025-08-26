@@ -8,17 +8,19 @@ export GASCRP=/home/aconaty/grads/lib
 export GAUDFT=/home/aconaty/GEOS_Util/plots/grads_util/udft_Linux.tools
 export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 #export GADDIR=/ford1/local/lib/grads
-
 source ${BUILD_PATH}/g5_modules.sh
 module load opengrads
+count_mail=$(cat ~/bin/.check_dmf_mail |tail -1)
+count_mail_o=$(cat ~/bin/.check_dmf_outmail |tail -1 )
 set -x
 #yyyymm=202505
 yyyymm=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
-let mm-=1
-mm=$(printf "%02d" $mm)
 echo $mm
+mm=$(printf %02d $((10#$mm - 1 )))
+echo $mm
+
 yy=$( echo $yyyymm | cut -c 3-4 )
 echo $yyyy $yy $mm
 logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
@@ -156,12 +158,15 @@ echo "done"
 echo $WORKING_DIR_1
 echo $WORKING_DIR_2
 # Send completion email
+
+# Send completion email with clean environment
 if [ $? -eq 0 ]; then
-    echo "Job completed successfully at $(date)" | mail -s "NCEP Monthly Means Success" oa@gmao.gsfc.nasa.gov
+    env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Success" "View results at $STORAGE_DIR" wesley.j.davis@nasa.gov
     rm -rf $WORKING_DIR_1
     rm -rf $WORKING_DIR_2
     exit 0
 else
-    echo "Job failed at $(date)" | mail -s "NCEP Monthly Means Failure" oa@gmao.gsfc.nasa.gov
+    env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Failure" "Working Dir 1: $WORKING_DIR_1 Working Dir 2: $WORKING_DIR_2 Storage_Dir: $STORAGE_DIR Listing Dir: /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/" wesley.j.davis@nasa.gov
     exit 1
 fi
+
