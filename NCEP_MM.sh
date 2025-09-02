@@ -10,12 +10,14 @@ export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 #export GADDIR=/ford1/local/lib/grads
 source ${BUILD_PATH}/g5_modules.sh
 module load opengrads
+source /home/dao_ops/GEOSadas-5_41_3/GEOSadas/Linux/bin/g5_modules
 set -x
 #yyyymm=202505
 yyyymm=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
-echo $mm
+MM=$(printf $((10#$mm - 1 )))
+echo $MM 
 mm=$(printf %02d $((10#$mm - 1 )))
 echo $mm
 
@@ -44,27 +46,28 @@ if [ $mm -eq "02" ]; then
 		DAY_TABLE=(      31    29    31    30    31    30    31    31    30    31    30    31 )
 		TARGET_TABLE=(  124   116   124   120   124   120   124   124   120   124   120   124 )
 	fi
-fi
-
+fi 
+echo ${DAY_TABLE[$MM-1]} ${TARGET_TABLE[$MM-1]}
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Initiating MM process" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
-MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
+MONTH_CURRENT=${MONTH_TABLE[$MM-1]}
+echo $MONTH_CURRENT $MONTHLY_TOTAL ${TARGET_TABLE[$MM-1]}
 WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work1
 WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work2
 MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 STORAGE_DIR=$MM_OUTPUT_DIR
 
-
-DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
+DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$MM-1]}" )
 mkdir -p $WORKING_DIR_1
 mkdir -p $WORKING_DIR_2
 mkdir -p $STORAGE_DIR
 
-echo $MONTHLY_TOTAL
+echo $MONTHLY_TOTAL $DAYS ${TARGET_TABLE[$MM-1]}
+
 # check for correct number of files
-if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
+if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$MM-1]} ]; then
 	echo "all files present - move to filesize check"
 else
 	echo "not all files present"
@@ -72,6 +75,7 @@ else
 	# throw warning
 	exit
 fi
+
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 # check for incomplete files
@@ -86,14 +90,14 @@ while IFS= read -r line  ; do
 	  dmget $target_file
 	  wait
 	  cp $target_file $WORKING_DIR_1
-	  ls ../workdir1
+	  ls $WORKING_DIR_1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
 	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 	  exit
   fi
 done < ${yyyy}${mm}_NCEP_files.list
-#rm -f ${yyyy}${mm}_NCEP_files.list
+rm -f ${yyyy}${mm}_NCEP_files.list
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "MONTHLY filesize check complete and good" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 for day in ${DAYS[@]}; do
@@ -115,23 +119,32 @@ for day in ${DAYS[@]}; do
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/opengrads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
 	cd -
 	mv $WORKING_DIR_1/i.1x125_ncep_26_levels.*${mm}${day} $WORKING_DIR_2
-	#rm -f $WORKING_DIR_1/${NCEP_BASENAME}.${yy}${mm}${day}.*z
+	rm -f $WORKING_DIR_1/${NCEP_BASENAME}.${yy}${mm}${day}.*z
 	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "successful gribmap and opengrads run for: $mm $day $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 	echo $gadatestring
 
 done
 
-#rm -rf $WORKING_DIR_1
+rm -rf $WORKING_DIR_1
 
 cp supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
 
 cd $WORKING_DIR_2
+ls $WORKING_DIR_2
 
 ${BUILD_PATH}/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600 > ${logdir}/${logfile} 2>&1
+ls $WORKING_DIR_2
+
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "successful flat2hdf.x run for: $mm $day $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile} 
 
-salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.$YYYY$MM*.nc4 >> ${logdir}/${logfile} 2>&1
+echo ${logdir}/${logfile}
+
+#export I_MPI_JOB_RESPECT_PROCESS_PLACEMENT=disable
+
+salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.${yyyy}${mm}*.nc4
+# >> ${logdir}/${logfile} 2>&1
+ls $WORKING_DIR_2
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "successful time_ave.x submission for: $mm $day $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
 
@@ -150,21 +163,18 @@ sed -i "s/${prev_month_total}/${curr_month_total}/g" $STORAGE_DIR/xdf.tabl
 
 cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
 
-#rm -rf $WORKING_DIR_2
+rm -rf $WORKING_DIR_2
 
 echo "done"
 echo $WORKING_DIR_1
 echo $WORKING_DIR_2
-# Send completion email
-
 # Send completion email with clean environment
 if [ $? -eq 0 ]; then
-    env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Success" "View results at $STORAGE_DIR" wesley.j.davis@nasa.gov
-    rm -rf $WORKING_DIR_1
-    rm -rf $WORKING_DIR_2
+    env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Success" "View results at $STORAGE_DIR" oa@gmao.gsfc.nasa.gov
+    #rm -rf $WORKING_DIR_1
+    #rm -rf $WORKING_DIR_2
     exit 0
 else
-    env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Failure" "Working Dir 1: $WORKING_DIR_1 Working Dir 2: $WORKING_DIR_2 Storage_Dir: $STORAGE_DIR Listing Dir: /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/" wesley.j.davis@nasa.gov
+    env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Failure" "Working Dir 1: $WORKING_DIR_1 Working Dir 2: $WORKING_DIR_2 Storage_Dir: $STORAGE_DIR Listing Dir: /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/" oa@gmao.gsfc.nasa.gov
     exit 1
 fi
-
