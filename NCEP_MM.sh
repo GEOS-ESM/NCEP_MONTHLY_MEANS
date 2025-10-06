@@ -65,22 +65,20 @@ echo ${DAY_TABLE[$mm-1]} ${TARGET_TABLE[$mm-1]}
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
 MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
-echo $MONTH_CURRENT $MONTHLY_TOTAL ${TARGET_TABLE[$MM-1]}
-exit
 WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work1
 WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work2
 MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 STORAGE_DIR=$MM_OUTPUT_DIR
 
-DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$MM-1]}" )
+DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
 mkdir -p $WORKING_DIR_1
 mkdir -p $WORKING_DIR_2
 mkdir -p $STORAGE_DIR
 
-echo $MONTHLY_TOTAL $DAYS ${TARGET_TABLE[$MM-1]}
+echo $MONTHLY_TOTAL $DAYS ${TARGET_TABLE[$mm-1]}
 
 # check for correct number of files
-if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$MM-1]} ]; then
+if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
 	echo "all files present - move to filesize check"
 else
 	echo "not all files present"
