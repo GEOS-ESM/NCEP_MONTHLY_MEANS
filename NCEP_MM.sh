@@ -18,14 +18,17 @@ module unload comp/gcc
 
 set -x
 
+# Accept command-line argument for date to run and check for validity
 year_month=$1
 
 if [ -n "$year_month" ] && [[ "$year_month" =~ ^[0-9]{6}$ ]]; then
     # Process with given date
     echo "Processing with date: $year-month"
-    yyyymmdd=$(tick ${year_month}01 000000 0 -120000 | awk '{print $1}')
+    yyyymmdd=$(tick ${year_month}01 000000 0 000000 | awk '{print $1}')
 elif [[ ! "$year_month" =~ ^[0-9]{6}$ ]]; then
     echo "Input must be in yyyymm format"
+    /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X NCEP_MM.sh -C 4
+    mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
     exit 1
 else
     # Filler text for alternative instructions
@@ -33,26 +36,16 @@ else
     year_month=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
     yyyymmdd=$(tick ${year_month}01 000000 0 -120000 | awk '{print $1}')
 fi
-#yyyymm=202505
-#yyyymm=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
+
+# Parse date for it's parts
 yyyy=$(echo $yyyymmdd | cut -c 1-4 )
 mm=$(echo  $yyyymmdd | cut -c 5-6 )
 echo $mm
 yy=$( echo $yyyymmdd | cut -c 3-4 )
 echo $yyyy $yy $mm
-exit
 logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
 mkdir -p ${logdir}
 logfile=NCEP_${yyyy}${mm}_MonMeans.log
-
-if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
-        echo "$yyyymm processing"
-else
-        echo "$yyyymm is either too long or not all integers, pass a date in yyyymm format"
-	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X NCEP_MM.sh -C 4 
-        mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
-fi
-
 
 DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30    31 )
 TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
@@ -66,13 +59,14 @@ if [ $mm -eq "02" ]; then
 		TARGET_TABLE=(  124   116   124   120   124   120   124   124   120   124   120   124 )
 	fi
 fi 
-echo ${DAY_TABLE[$MM-1]} ${TARGET_TABLE[$MM-1]}
+echo ${DAY_TABLE[$mm-1]} ${TARGET_TABLE[$mm-1]}
 #ROB /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Initiating MM process" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
-MONTH_CURRENT=${MONTH_TABLE[$MM-1]}
+MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
 echo $MONTH_CURRENT $MONTHLY_TOTAL ${TARGET_TABLE[$MM-1]}
+exit
 WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work1
 WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work2
 MM_OUTPUT_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
