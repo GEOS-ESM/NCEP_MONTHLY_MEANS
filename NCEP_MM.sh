@@ -17,6 +17,19 @@ ls -l /tmp/ncep_means.$PPID
 module unload comp/gcc
 
 set -x
+
+yyyymm=$1
+
+if [ -n "$yyyymm" ]; then
+    # Process with yyyymm parameter
+    echo "Processing with date: $yyyymm"
+else
+    # Filler text for alternative instructions
+    echo "No date parameter provided - executing alternative workflow"
+    # Additional commands would go here
+fi
+
+
 #yyyymm=202505
 yyyymm=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
 yyyymm=202501
