@@ -2,18 +2,24 @@
 # example: /usr/bin/bash NCEP_MM.sh
 export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
 export NCEP_BASENAME=gdas1.PGrbF00
-export BUILD_PATH=/home/dao_ops/GEOSadas-5_41_3/GEOSadas/Linux/bin
+export BUILD_PATH=/home/dao_ops/GEOSadas-CURRENT/GEOSadas/install/
 export GASCRP=/home/aconaty/grads/lib
 #export GAUDFT=/home/aconaty/grads/udf/UDFT
 export GAUDFT=/home/aconaty/GEOS_Util/plots/grads_util/udft_Linux.tools
 export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 #export GADDIR=/ford1/local/lib/grads
-source ${BUILD_PATH}/g5_modules.sh
+source ${BUILD_PATH}/bin/g5_modules.sh
 module load opengrads
-source /home/dao_ops/GEOSadas-5_41_3/GEOSadas/Linux/bin/g5_modules
+
+ls -l /tmp/ncep_means.$PPID
+
+# comp/gcc can cause problems with the Mail program.
+module unload comp/gcc
+
 set -x
 #yyyymm=202505
 yyyymm=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
+yyyymm=202501
 yyyy=$(echo $yyyymm | cut -c 1-4 )
 mm=$(echo  $yyyymm | cut -c 5-6 )
 MM=$(printf $((10#$mm - 1 )))
@@ -31,7 +37,8 @@ if [[ $yyyymm =~ ^[0-9]+$  && ${#yyyymm} == 6 ]]; then
         echo "$yyyymm processing"
 else
         echo "$yyyymm is either too long or not all integers, pass a date in yyyymm format"
-	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
+	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$yyyymm is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X NCEP_MM.sh -C 4 
+        mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
 fi
 
 
@@ -48,7 +55,7 @@ if [ $mm -eq "02" ]; then
 	fi
 fi 
 echo ${DAY_TABLE[$MM-1]} ${TARGET_TABLE[$MM-1]}
-/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Initiating MM process" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
+#ROB /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Initiating MM process" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
@@ -71,10 +78,12 @@ if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$MM-1]} ]; then
 	echo "all files present - move to filesize check"
 else
 	echo "not all files present"
-	/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Not all files present for the month" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
+#ROB    /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Not all files present for the month" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 	# throw warning
 	exit
 fi
+
+exit
 
 /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X ${NCEP_BASENAME} -C 4 -L ${logdir}/${logfile}
 
@@ -107,8 +116,8 @@ for day in ${DAYS[@]}; do
 	# environment vars that should be set in ../config/MM_config.rc
 	# create data string 00z$DD$cmon$YYYY
 	
-	/bin/cp ./supplementary/1x125.TEMPLATE_ncep_gdas1.ctl $WORKING_DIR_1/1x125.ncep_gdas1.ctl
-	/bin/cp ./supplementary/1x125.process_engine.gs $WORKING_DIR_1/1x125.process_engine.gs
+	/bin/cp -v ${BUILD_PATH}/bin_ops/NCEP_MONTHLY_MEANS/supplementary/1x125.TEMPLATE_ncep_gdas1.ctl $WORKING_DIR_1/1x125.ncep_gdas1.ctl
+	/bin/cp -v ${BUILD_PATH}/bin_ops/NCEP_MONTHLY_MEANS/supplementary/1x125.process_engine.gs $WORKING_DIR_1/1x125.process_engine.gs
 	gadatestring=00z${day}${MONTH_CURRENT}${yyyy}
 	sed -i "s/GRADSDATE/$gadatestring/g" $WORKING_DIR_1/1x125.ncep_gdas1.ctl
 	ls $WORKING_DIR_1/1x125.ncep_gdas1.ctl
@@ -128,7 +137,7 @@ done
 
 rm -rf $WORKING_DIR_1
 
-cp supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
+cp -v ${BUILD_PATH}/bin_ops/NCEP_MONTHLY_MEANS/supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
 
 cd $WORKING_DIR_2
 ls $WORKING_DIR_2
@@ -170,11 +179,56 @@ echo $WORKING_DIR_1
 echo $WORKING_DIR_2
 # Send completion email with clean environment
 if [ $? -eq 0 ]; then
-    env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Success" "View results at $STORAGE_DIR" oa@gmao.gsfc.nasa.gov
-    #rm -rf $WORKING_DIR_1
-    #rm -rf $WORKING_DIR_2
+
+   rm temp_file
+   cat <<EOF > temp_file
+
+***************************************************************
+
+      ${yyyy}-${mm} Monthly Means for NCEP GFS are ready
+
+***************************************************************
+
+EOF
+  
+  mail_cmd="/usr/bin/Mail -r oa@gmao.gsfc.nasa.gov -R oa@gmao.gsfc.nasa.gov"
+  cat temp_file
+  $mail_cmd -s "NCEP GFS Monthly Means Ready ${yyyy}-${mm}" ral51@verizon.net < temp_file
+
+
+
+#   env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Success" "View results at $STORAGE_DIR" oa@gmao.gsfc.nasa.gov
+#   #rm -rf $WORKING_DIR_1
+#   #rm -rf $WORKING_DIR_2
     exit 0
+
+
 else
-    env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Failure" "Working Dir 1: $WORKING_DIR_1 Working Dir 2: $WORKING_DIR_2 Storage_Dir: $STORAGE_DIR Listing Dir: /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/" oa@gmao.gsfc.nasa.gov
+
+#    env -i PATH=/usr/bin:/bin /usr/bin/perl perl-mailer.pl "NCEP Monthly Means - Failure" "Working Dir 1: $WORKING_DIR_1 Working Dir 2: $WORKING_DIR_2 Storage_Dir: $STORAGE_DIR Listing Dir: /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/" oa@gmao.gsfc.nasa.gov
+
+   rm temp_file
+cat <<EOF > temp_file
+
+*************************************************************** 
+
+      ${yyyy}-${mm} Monthly Means for NCEP GFS FAILED!
+
+Working Dir 1: $WORKING_DIR_1
+Working Dir 2: $WORKING_DIR_2
+Storage_Dir: $STORAGE_DIR
+Listing Dir: /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/
+        
+***************************************************************
+        
+EOF
+
+  mail_cmd="/usr/bin/Mail -r oa@gmao.gsfc.nasa.gov -R oa@gmao.gsfc.nasa.gov"
+  cat temp_file
+  $mail_cmd -s "NCEP GFS Monthly Means  ${yyyy}-${mm} FAILED" ral51@verizon.net < temp_file
+
+
+
     exit 1
+
 fi
