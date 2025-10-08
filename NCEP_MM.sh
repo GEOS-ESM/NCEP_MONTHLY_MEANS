@@ -189,6 +189,8 @@ ls $WORKING_DIR_2
 # Execute the time averaging step using salloc
 
 salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.${yyyy}${mm}*.nc4
+wait
+mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
 
 # If succcess, move data over, edit in the current number of files to xdf.tabl, send completion email. If failure throw error and quit.
 
@@ -197,9 +199,7 @@ if [ $? -eq 0 ]; then
 
     /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "Successful time_ave.x run for: $yyyy $MONTH_CURRENT" -X $NCEP_Monthly_Means -C 4
     
-    # successful run, now move data over and edit xdf.tabl
-
-    mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
+    # successful run, now edit xdf.tabl
 
     cd -
     cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" '
