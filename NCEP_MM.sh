@@ -2,13 +2,13 @@
 # example: /usr/bin/bash NCEP_MM.sh
 export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
 export NCEP_BASENAME=gdas1.PGrbF00
-export BUILD_PATH=/home/dao_ops/GEOSadas-CURRENT/GEOSadas/install/
+export BUILD_PATH=/home/dao_ops/GEOSadas-CURRENT/GEOSadas/install
 export GASCRP=/home/aconaty/grads/lib
 #export GAUDFT=/home/aconaty/grads/udf/UDFT
 export GAUDFT=/home/aconaty/GEOS_Util/plots/grads_util/udft_Linux.tools
 export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 #export GADDIR=/ford1/local/lib/grads
-source ${BUILD_PATH}/bin/g5_modules.sh
+source /home/dao_ops/GEOSadas-CURRENT/GEOSadas/install/bin/g5_modules.sh
 module load opengrads
 
 # comp/gcc can cause problems with the Mail program.
@@ -25,26 +25,20 @@ touch $logfile
 ls -l $logfile
 
 mail_cmd="/usr/bin/Mail -r oa@gmao.gsfc.nasa.gov -R oa@gmao.gsfc.nasa.gov"
-
+$mail_cmd -s "NCEP GFS Monthly Means Beginning for ${yyyy}-${mm}" wesley.j.davis@nasa.gov
 # Accept command-line argument for date to run and check for validity
 
 year_month=$1
 
 if [ -n "$year_month" ] && [[ "$year_month" =~ ^[0-9]{6}$ ]]; then
     # Process with given date
-    yyyymmdd=$(tick ${year_month}01 000000 0 000000 | awk '{print $1}')
+    yyyymmdd=$( /usr/bin/perl /home/dao_ops/bin/tick ${year_month}01 000000 0 000000 | awk '{print $1}')
     echo "Processing with date: $yyyymmdd"
-
-elif [[ ! "$year_month" =~ ^[0-9]{6}$ ]]; then
-    echo "Input must be in yyyymm format"
-    /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Date is not exactly 6 integers or not all integers, pass a date in yyyymm format" -X NCEP_Monthly_Means -C 4
-    mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
-    exit 1
-else
+else 
     # Filler text for alternative instructions
     echo "No date parameter provided - executing alternative workflow"
     year_month=$(date "+DATE: %Y%m" | awk ' { print $2  }  ')
-    yyyymmdd=$(tick ${year_month}01 000000 0 -120000 | awk '{print $1}')
+    yyyymmdd=$( /usr/bin/perl /home/dao_ops/bin/tick ${year_month}01 000000 0 -120000 | awk '{print $1}')
 fi
 
 # Parse date for it's parts
@@ -73,7 +67,7 @@ echo ${DAY_TABLE[$mm-1]} ${TARGET_TABLE[$mm-1]}
 
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
-MONTH_CURRENT=${MONTH_TABLE[$mm-1]}
+MONTH_CURRENT=${MONTH_TABLE[10#$mm-1]}
 
 # Define and create directories
 
@@ -91,11 +85,11 @@ echo $MONTHLY_TOTAL $DAYS ${TARGET_TABLE[$mm-1]}
 # check for correct number of files
 if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
 	echo "all files present - move to filesize check"
-        /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 
+        /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 
 
 else
 	echo "not all files present"
-        /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$MONTHLY_TOTAL is less than the expected number of files present for $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 
+        /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 4 -D "$MONTHLY_TOTAL is less than the expected number of files present for $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 
         mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
 	exit 1
 fi
@@ -115,14 +109,14 @@ while IFS= read -r line  ; do
 	  ls $WORKING_DIR_1
   elif [ $file_size -lt 60000000 ]; then
 	  echo "$line is a bad file."
-	  /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "$line is less than expected size" -X NCEP_Monthly_Means -C 4
+	  /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 4 -D "$line is less than expected size" -X NCEP_Monthly_Means -C 4
           mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
 	  exit 1
   fi
 done < ${yyyy}${mm}_NCEP_files.list
 rm -f ${yyyy}${mm}_NCEP_files.list
 
-/usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "MONTHLY filesize check complete and good" -X NCEP_Monthly_Means -C 4 
+/usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "MONTHLY filesize check complete and good" -X NCEP_Monthly_Means -C 4 
 
 # Gribmap and opengrads for each day in month
 for day in ${DAYS[@]}; do
@@ -144,10 +138,10 @@ for day in ${DAYS[@]}; do
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/gribmap -i 1x125.ncep_gdas1.ctl
         if [ $? -eq 0 ]; then
             # Previous command succeeded
-            /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Successful gribmap run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4
+            /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "Successful gribmap run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4
         else
             # Previous command failed
-            /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Unsuccessful gribmap run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4
+            /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 4 -D "Unsuccessful gribmap run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4
             mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
             exit 1
         fi
@@ -155,10 +149,10 @@ for day in ${DAYS[@]}; do
 	/discover/nobackup/projects/gmao/share/dasilva/opengrads/Contents/opengrads -blc "run 1x125.process_engine.gs $mm $day $MONTH_CURRENT"
         if [ $? -eq 0 ]; then
             # Previous command succeeded
-            /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Successful opengrads run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4
+            /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "Successful opengrads run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4
         else
             # Previous command failed
-            /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Unsuccessful opengrads run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4
+            /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 4 -D "Unsuccessful opengrads run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4
             mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
             exit 1
         fi
@@ -177,13 +171,13 @@ cp -v ${BUILD_PATH}/bin_ops/NCEP_MONTHLY_MEANS/supplementary/1x125_ncep_regrid_d
 cd $WORKING_DIR_2
 ls $WORKING_DIR_2
 
-${BUILD_PATH}/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600 > ${logdir}/${logfile} 2>&1
+${BUILD_PATH}/bin/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600 > ${logdir}/${logfile} 2>&1
 if [ $? -eq 0 ]; then
     # Previous command succeeded
-    /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Successful flat2hdf.x run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 
+    /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "Successful flat2hdf.x run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 
 else
     # Previous command failed
-    /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Unsuccessful flat2hdf.x run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 -L ${logdir}/${logfile}
+    /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 4 -D "Unsuccessful flat2hdf.x run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 -L ${logdir}/${logfile}
     mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
     exit 1
 fi
@@ -201,7 +195,7 @@ salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 
 if [ $? -eq 0 ]; then
     # Previous command succeeded
 
-    /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "Successful time_ave.x run for: $yyyy $MONTH_CURRENT" -X $NCEP_Monthly_Means -C 4
+    /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "Successful time_ave.x run for: $yyyy $MONTH_CURRENT" -X $NCEP_Monthly_Means -C 4
     
     # successful run, now move data over and edit xdf.tabl
 
@@ -213,7 +207,7 @@ if [ $? -eq 0 ]; then
     curr_month_total=$(ls $STORAGE_DIR | grep nc4$ | wc -l)
     sed -i "s/${prev_month_total}/${curr_month_total}/g" $STORAGE_DIR/xdf.tabl
 
-    /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 0 -D "xdf.table entry is now: $( cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" ' ) " -X NCEP_Monthly_Means -C 4
+    /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "xdf.table entry is now: $( cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" ' ) " -X NCEP_Monthly_Means -C 4
 
     # Draft and send completion email
 
@@ -236,7 +230,7 @@ if [ $? -eq 0 ]; then
 else
     # Previous command failed
 
-    /usr/bin/perl ${BUILD_PATH}/Err_Log.pl -E 4 -D "Unsuccessful time_ave.x run for: $yyyy $MONTH_CURRENT" -X $NCEP_Monthly_Means -C 4
+    /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 4 -D "Unsuccessful time_ave.x run for: $yyyy $MONTH_CURRENT" -X $NCEP_Monthly_Means -C 4
 
     rm temp_file
 
@@ -256,7 +250,7 @@ else
     EOF
 
     cat temp_file
-    $mail_cmd -s "NCEP GFS Monthly Means  ${yyyy}-${mm} FAILED" ral51@verizon.net < temp_file
+    $mail_cmd -s "NCEP GFS Monthly Means  ${yyyy}-${mm} FAILED" wesley.j.davis@nasa.gov < temp_file
     mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
     exit 1
 fi
