@@ -51,9 +51,9 @@ echo $mm
 yy=$( echo $yyyymmdd | cut -c 3-4 )
 echo $yyyy $yy $mm
 
-mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
-exit
-logfile=NCEP_${yyyy}${mm}_MonMeans.log
+#mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
+#exit
+#logfile=NCEP_${yyyy}${mm}_MonMeans.log
 
 # Determin how many files is enough to process a particular month.
 
@@ -61,7 +61,7 @@ DAY_TABLE=(      31    28    31    30    31    30    31    31    30    31    30 
 TARGET_TABLE=(  124   112   124   120   124   120   124   124   120   124   120   124 )
 
 if [ $mm -eq "02" ]; then
-	num_check=$( /usr/bin/perl /home/dao_ops/bin/tick ${yyyy}${mm}${DAY_TABLE[$mm-1]} )
+	num_check=$( /usr/bin/perl /home/dao_ops/bin/tick ${yyyy}${mm}${DAY_TABLE[10#$mm-1]} )
 	check_num=$(echo $num_check | cut -c 7-8 )
 	echo $check_num
 	if [ $check_num -eq "29" ]; then
@@ -69,7 +69,7 @@ if [ $mm -eq "02" ]; then
 		TARGET_TABLE=(  124   116   124   120   124   120   124   124   120   124   120   124 )
 	fi
 fi 
-echo ${DAY_TABLE[$mm-1]} ${TARGET_TABLE[$mm-1]}
+echo ${DAY_TABLE[10#$mm-1]} ${TARGET_TABLE[10#$mm-1]}
 
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
@@ -81,15 +81,15 @@ WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work1
 WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work2
 STORAGE_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 
-DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$mm-1]}" )
+DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[10#$mm-1]}" )
 mkdir -p $WORKING_DIR_1
 mkdir -p $WORKING_DIR_2
 mkdir -p $STORAGE_DIR
 
-echo $MONTHLY_TOTAL $DAYS ${TARGET_TABLE[$mm-1]}
+echo $MONTHLY_TOTAL $DAYS ${TARGET_TABLE[10#$mm-1]}
 
 # check for correct number of files
-if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$mm-1]} ]; then
+if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[10#$mm-1]} ]; then
 	echo "all files present - move to filesize check"
         /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 
 
@@ -99,7 +99,8 @@ else
         mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
 	exit 1
 fi
-
+mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
+exit
 # check for incomplete files
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyy}${mm}_NCEP_files.list
 cat ${yyyy}${mm}_NCEP_files.list
