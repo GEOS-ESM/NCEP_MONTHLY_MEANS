@@ -218,8 +218,10 @@ if [ $? -eq 0 ]; then
     cat <<EOF > temp_file
     ***************************************************************
     ${yyyy}-${mm} Monthly Means for NCEP GFS are ready
+    $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
+    xdf.table entry is now: $( cat $STORAGE_DIR/xdf.tabl | awk ' $0 ~ "TDEF" ' )
     ***************************************************************
-    EOF
+EOF
 
     cat temp_file
     $mail_cmd -s "NCEP GFS Monthly Means Ready ${yyyy}-${mm}" wesley.j.davis@nasa.gov < temp_file
@@ -249,7 +251,7 @@ else
 
     ***************************************************************
 
-    EOF
+EOF
 
     cat temp_file
     $mail_cmd -s "NCEP GFS Monthly Means  ${yyyy}-${mm} FAILED" wesley.j.davis@nasa.gov < temp_file
