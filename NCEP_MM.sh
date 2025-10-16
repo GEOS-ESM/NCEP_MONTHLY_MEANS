@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 # example: /usr/bin/bash NCEP_MM.sh
-source /etc/bash.bashrc
+source /etc/profile
 
 export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
 export NCEP_BASENAME=gdas1.PGrbF00
@@ -69,11 +69,11 @@ if [ $mm -eq "02" ]; then
 		TARGET_TABLE=(  124   116   124   120   124   120   124   124   120   124   120   124 )
 	fi
 fi 
-echo ${DAY_TABLE[10#$mm-1]} ${TARGET_TABLE[10#$mm-1]}
+echo ${DAY_TABLE[$((10#$mm-1))]} ${TARGET_TABLE[$((10#$mm-1))]}
 
 MONTH_TABLE=(  "jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec" )
 MONTHLY_TOTAL=$( ls ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* | wc -l )
-MONTH_CURRENT=${MONTH_TABLE[10#$mm-1]}
+MONTH_CURRENT=${MONTH_TABLE[$((10#$mm-1))]}
 
 # Define and create directories
 
@@ -81,15 +81,15 @@ WORKING_DIR_1=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work1
 WORKING_DIR_2=/gpfsm/dnb34/dao_ops/WORK/NCEP_MM/${yyyy}${mm}work2
 STORAGE_DIR=/discover/nobackup/projects/gmao/share/dao_ops/verification/NCEP_GDAS-1.NC4
 
-DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[10#$mm-1]}" )
+DAYS=$( seq -f "%02g" 1 "${DAY_TABLE[$((10#$mm-1))]}" )
 mkdir -p $WORKING_DIR_1
 mkdir -p $WORKING_DIR_2
 mkdir -p $STORAGE_DIR
 
-echo $MONTHLY_TOTAL $DAYS ${TARGET_TABLE[10#$mm-1]}
+echo $MONTHLY_TOTAL $DAYS ${TARGET_TABLE[$((10#$mm-1))]}
 
 # check for correct number of files
-if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[10#$mm-1]} ]; then
+if [ $MONTHLY_TOTAL -eq ${TARGET_TABLE[$((10#$mm-1))]} ]; then
 	echo "all files present - move to filesize check"
         /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "$MONTHLY_TOTAL is correct number of files for $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 
 
@@ -99,8 +99,8 @@ else
         mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
 	exit 1
 fi
-mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
-exit
+#mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
+#exit
 # check for incomplete files
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyy}${mm}_NCEP_files.list
 cat ${yyyy}${mm}_NCEP_files.list
