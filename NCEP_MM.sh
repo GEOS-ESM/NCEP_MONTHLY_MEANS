@@ -31,7 +31,6 @@ ls -l $logfile
 mail_cmd="/usr/bin/Mail -r oa@gmao.gsfc.nasa.gov -R oa@gmao.gsfc.nasa.gov"
 $mail_cmd -s "NCEP GFS Monthly Means Beginning for ${yyyy}-${mm}" wesley.j.davis@nasa.gov
 # Accept command-line argument for date to run and check for validity
-exit
 year_month=$1
 
 if [ -n "$year_month" ] && [[ "$year_month" =~ ^[0-9]{6}$ ]]; then
