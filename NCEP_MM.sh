@@ -23,8 +23,8 @@ module list
 # Use Parent Process ID to create new log for every run instead of clobbering
 
 logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
-mkdir -p ${logdir}
-logfile=/tmp/ncep_means.$PPID
+#mkdir -p ${logdir}
+#logfile=/tmp/ncep_means.$PPID
 #touch $logfile
 #ls -l $logfile
 
@@ -102,6 +102,7 @@ fi
 #mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
 #exit
 # check for incomplete files
+rm -f ${yyyy}${mm}_NCEP_files.list
 ls -atlr ${NCEP_BASE_DIR}/Y${yyyy}/M${mm}/${NCEP_BASENAME}.${yy}${mm}* > ${yyyy}${mm}_NCEP_files.list
 cat ${yyyy}${mm}_NCEP_files.list
 while IFS= read -r line  ; do
@@ -121,6 +122,8 @@ while IFS= read -r line  ; do
 	  exit 1
   fi
 done < ${yyyy}${mm}_NCEP_files.list
+#mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
+#exit
 rm -f ${yyyy}${mm}_NCEP_files.list
 
 /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "MONTHLY filesize check complete and good" -X NCEP_Monthly_Means -C 4 
@@ -170,7 +173,8 @@ for day in ${DAYS[@]}; do
 	echo $gadatestring
 
 done
-
+#mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
+#exit
 rm -rf $WORKING_DIR_1
 
 cp -v ${BUILD_PATH}/bin_ops/NCEP_MONTHLY_MEANS/supplementary/1x125_ncep_regrid_daily.ctl $WORKING_DIR_2
@@ -178,7 +182,7 @@ cp -v ${BUILD_PATH}/bin_ops/NCEP_MONTHLY_MEANS/supplementary/1x125_ncep_regrid_d
 cd $WORKING_DIR_2
 ls $WORKING_DIR_2
 
-${BUILD_PATH}/bin/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600 > ${logdir}/${logfile} 2>&1
+${BUILD_PATH}/bin/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600 # > ${logdir}/${logfile} 2>&1
 
 ls $WORKING_DIR_2
 
