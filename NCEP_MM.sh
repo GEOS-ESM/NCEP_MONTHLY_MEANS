@@ -25,8 +25,8 @@ module list
 logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
 mkdir -p ${logdir}
 logfile=/tmp/ncep_means.$PPID
-touch $logfile
-ls -l $logfile
+#touch $logfile
+#ls -l $logfile
 
 mail_cmd="/usr/bin/Mail -r oa@gmao.gsfc.nasa.gov -R oa@gmao.gsfc.nasa.gov"
 $mail_cmd -s "NCEP GFS Monthly Means Beginning for ${yyyy}-${mm}" wesley.j.davis@nasa.gov
@@ -50,7 +50,10 @@ mm=$(echo  $yyyymmdd | cut -c 5-6 )
 echo $mm
 yy=$( echo $yyyymmdd | cut -c 3-4 )
 echo $yyyy $yy $mm
-#logfile=NCEP_${yyyy}${mm}_MonMeans.log
+
+mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
+exit
+logfile=NCEP_${yyyy}${mm}_MonMeans.log
 
 # Determin how many files is enough to process a particular month.
 
