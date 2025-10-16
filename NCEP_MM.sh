@@ -19,7 +19,7 @@ module load opengrads
 # comp/gcc can cause problems with the Mail program.
 module unload comp/gcc
 module list
-mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
+#mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
 # Use Parent Process ID to create new log for every run instead of clobbering
 
 logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
