@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 # example: /usr/bin/bash NCEP_MM.sh
+
 export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
 export NCEP_BASENAME=gdas1.PGrbF00
 export BUILD_PATH=/home/dao_ops/GEOSadas-CURRENT/GEOSadas/install
@@ -8,14 +9,16 @@ export GASCRP=/home/aconaty/grads/lib
 export GAUDFT=/home/aconaty/GEOS_Util/plots/grads_util/udft_Linux.tools
 export GADDIR=/discover/nobackup/projects/gmao/share/dao_ops/opengrads/dat
 #export GADDIR=/ford1/local/lib/grads
+
+set -x
+ps
 source /home/dao_ops/GEOSadas-CURRENT/GEOSadas/install/bin/g5_modules.sh
 module load opengrads
 
 # comp/gcc can cause problems with the Mail program.
 module unload comp/gcc
-
-set -x
-
+module list
+mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log
 # Use Parent Process ID to create new log for every run instead of clobbering
 
 logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
@@ -27,7 +30,7 @@ ls -l $logfile
 mail_cmd="/usr/bin/Mail -r oa@gmao.gsfc.nasa.gov -R oa@gmao.gsfc.nasa.gov"
 $mail_cmd -s "NCEP GFS Monthly Means Beginning for ${yyyy}-${mm}" wesley.j.davis@nasa.gov
 # Accept command-line argument for date to run and check for validity
-
+exit
 year_month=$1
 
 if [ -n "$year_month" ] && [[ "$year_month" =~ ^[0-9]{6}$ ]]; then
@@ -172,15 +175,6 @@ cd $WORKING_DIR_2
 ls $WORKING_DIR_2
 
 ${BUILD_PATH}/bin/flat2hdf.x -flat i* -ctl 1x125_ncep_regrid_daily.ctl -nymd ${yyyy}${mm}01 -nhms 0 -ndt 21600 > ${logdir}/${logfile} 2>&1
-if [ $? -eq 0 ]; then
-    # Previous command succeeded
-    /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 0 -D "Successful flat2hdf.x run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 
-else
-    # Previous command failed
-    /usr/bin/perl ${BUILD_PATH}/bin/Err_Log.pl -E 4 -D "Unsuccessful flat2hdf.x run for: $mm $day $MONTH_CURRENT" -X NCEP_Monthly_Means -C 4 -L ${logdir}/${logfile}
-    mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
-    exit 1
-fi
 
 ls $WORKING_DIR_2
 
@@ -188,7 +182,7 @@ ls $WORKING_DIR_2
 
 # Execute the time averaging step using salloc
 
-salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/esma_mpirun  -np 28 ${BUILD_PATH}/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.${yyyy}${mm}*.nc4
+salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/bin/esma_mpirun  -np 28 ${BUILD_PATH}/bin/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.${yyyy}${mm}*.nc4
 wait
 mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
 
