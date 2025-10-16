@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 # example: /usr/bin/bash NCEP_MM.sh
+source /etc/bash.bashrc
 
 export NCEP_BASE_DIR=/archive/input/dao_ops/obs/flk/ncep_ana/Grib/ncep_ana
 export NCEP_BASENAME=gdas1.PGrbF00
