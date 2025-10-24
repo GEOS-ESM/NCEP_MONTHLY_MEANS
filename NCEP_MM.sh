@@ -192,6 +192,7 @@ ls $WORKING_DIR_2
 
 salloc --qos=debug --ntasks=28 --time=1:00:00 ${BUILD_PATH}/bin/esma_mpirun  -np 28 ${BUILD_PATH}/bin/time_ave.x  -noquad  -ops -tag ncep_gdas.${yyyy}${mm}mm  -hdf i*.${yyyy}${mm}*.nc4
 wait
+chmod 644 ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4
 mv ncep_gdas.${yyyy}${mm}mm.${yyyy}${mm}.nc4 $STORAGE_DIR/ncep_gdas.${yyyy}${mm}mm.nc4
 
 # If succcess, move data over, edit in the current number of files to xdf.tabl, send completion email. If failure throw error and quit.
@@ -224,7 +225,7 @@ if [ $? -eq 0 ]; then
 EOF
 
     cat temp_file
-    $mail_cmd -s "NCEP GFS Monthly Means Ready ${yyyy}-${mm}" wesley.j.davis@nasa.gov < temp_file
+    $mail_cmd -s "NCEP GFS Monthly Means Ready ${yyyy}-${mm}"  robert.a.lucchesi@nasa.gov < temp_file
     
     # Success! Now change the listing file name from the PPID to the date and move over to the listing directory
 
