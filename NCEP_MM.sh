@@ -29,7 +29,7 @@ logdir=/discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM
 #ls -l $logfile
 
 mail_cmd="/usr/bin/Mail -r oa@gmao.gsfc.nasa.gov -R oa@gmao.gsfc.nasa.gov"
-$mail_cmd -s "NCEP GFS Monthly Means Beginning for ${yyyy}-${mm}" wesley.j.davis@nasa.gov
+$mail_cmd -s "NCEP GFS Monthly Means Beginning for ${yyyy}-${mm}" oa@gmao.gsfc.nasa.gov
 # Accept command-line argument for date to run and check for validity
 year_month=$1
 
@@ -225,7 +225,7 @@ if [ $? -eq 0 ]; then
 EOF
 
     cat temp_file
-    $mail_cmd -s "NCEP GFS Monthly Means Ready ${yyyy}-${mm}"  robert.a.lucchesi@nasa.gov < temp_file
+    $mail_cmd -s "NCEP GFS Monthly Means Ready ${yyyy}-${mm}" oa@gmao.gsfc.nasa.gov < temp_file
     
     # Success! Now change the listing file name from the PPID to the date and move over to the listing directory
 
@@ -255,7 +255,7 @@ else
 EOF
 
     cat temp_file
-    $mail_cmd -s "NCEP GFS Monthly Means  ${yyyy}-${mm} FAILED" wesley.j.davis@nasa.gov < temp_file
+    $mail_cmd -s "NCEP GFS Monthly Means  ${yyyy}-${mm} FAILED" oa@gmao.gsfc.nasa.gov < temp_file
     mv /tmp/ncep_means.$PPID /discover/nobackup/dao_ops/intermediate/D-BOSS/listings/NCEP_MM/ncep_means.${yyyy}_${mm}.$$.log.FAILED
     exit 1
 fi
